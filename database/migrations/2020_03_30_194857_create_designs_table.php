@@ -21,7 +21,7 @@ class CreateDesignsTable extends Migration
             $table->string('description')->nullable();
             $table->string('slug')->nullable();
             //$table->boolean('close_to_comment')->nullable(false);
-            $table->boolean('is_live')->nullable(false);
+            $table->boolean('is_live')->nullable(false)->default(false);
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');    
