@@ -7,13 +7,34 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DesignResource;
+use App\Repositories\Contracts\IDesign;
 use Illuminate\Support\Facades\Storage;
+use App\Repositories\Eloquent\Criteria\IsLive;
+use App\Repositories\Eloquent\Criteria\ForUser;
+use App\Repositories\Eloquent\Criteria\LatestFirst;
 
 class DesignController extends Controller
 {
+    protected $designs;
+
+    public function __construct(IDesign $designs)
+    {
+        $this->designs = $designs;
+    }
+
+    public function index()
+    {
+        $designs = $this->designs->withCriteria([
+            new LatestFirst(),
+            new IsLive(),
+            new ForUser(1)
+        ])->all();
+        return DesignResource::collection($designs);
+    }
+
     public function update(Request $request, $id)
     {
-        $design = Design::findOrFail($id);
+        $design = $this->designs->find($id);
 
         $this->authorize('update', $design);
 
@@ -24,21 +45,21 @@ class DesignController extends Controller
         ]);
 
         
-        $design->update([
+        $design = $this->designs->update($id, [
             'title' => $request->title,
             'description' => $request->description,
             'slug' => Str::slug($request->title),
             'is_live' => ! $design->upload_successful ? false : $request->is_live
         ]);
 
-        $design->retag($request->tags);
+        $this->designs->applyTags($id, $request->tags);
         
         return new DesignResource($design);
     }
 
     public function destroy($id)
     {
-        $design = Design::findOrFail($id);
+        $design = $this->designs->find($id);
         $this->authorize('delete', $design);       
 
         foreach(['thumbnail', 'large', 'original'] as $size)
@@ -49,9 +70,15 @@ class DesignController extends Controller
             }
         }
 
-        $design->delete();
+        $this->designs->delete();
 
         return response()->json([
             "message" => "Record deleted"], 200);
+    }
+
+    public function findDesign($id)
+    {
+        $design = $this->designs->find($id);
+        return new DesignResource($design);
     }
 }

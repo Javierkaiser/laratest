@@ -3,6 +3,13 @@
 //Publico
 Route::get('me', 'User\MeController@getMe');
 
+//Get Designs
+Route::get('designs', 'Designs\DesignController@index');
+Route::get('designs/{id}', 'Designs\DesignController@findDesign');
+
+//Get Users
+Route::get('users', 'User\UserController@index');
+
 
 //Grupo de Autenticados
 Route::group(['middleware' => ['auth:api']], function () {
