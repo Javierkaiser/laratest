@@ -10,7 +10,6 @@ Route::get('designs/{id}', 'Designs\DesignController@findDesign');
 //Get Users
 Route::get('users', 'User\UserController@index');
 
-
 //Grupo de Autenticados
 Route::group(['middleware' => ['auth:api']], function () {
     Route::post('logout', 'Auth\LoginController@logout');
